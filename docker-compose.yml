@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  graphql:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: app
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    expose:
+      - 9090
+    networks:
+      - monitoring
+    depends_on:
+      - graphql
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes:
+      - grafana_test_data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - grafana-net
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana_test_data:
+
+networks:
+  grafana-net:
+    driver: bridge
+  monitoring:
+    driver: bridge
+
+
+#    depends_on:
+#      - db
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/graphql
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=postgres
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+#  db:
+#    image: postgres
+#    container_name: database
+#    volumes:
+#      - ./sql-init.sql:/docker-entrypoint-initdb.d/sql-init.sql
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=123
+#    ports:
+#      - '5432:5432'

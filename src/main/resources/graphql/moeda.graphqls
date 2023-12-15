@@ -1,0 +1,11 @@
+type Query {
+    gerarMockDados(quantidade: Int) : String
+    resetarMockDados: String
+}
+
+type Moeda {
+    id: Int
+    nome: String
+    valor: Float
+    data: String
+}
